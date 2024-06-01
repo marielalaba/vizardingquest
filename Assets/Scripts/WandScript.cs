@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-public class DragObject : MonoBehaviour
+public class WandScript : MonoBehaviour
 {
     private Camera playerCamera;
     public GameObject wand;
@@ -17,8 +17,7 @@ public class DragObject : MonoBehaviour
 
     void Update()
     {
-        Vector3 forward = playerCamera.transform.forward;
-        Vector3 start = playerCamera.transform.position;
+
 
         if (Input.GetKeyDown(KeyCode.E))
         {
@@ -43,6 +42,5 @@ public class DragObject : MonoBehaviour
             wand.transform.position = holdPoint.position;
         }
 
-        Debug.DrawRay(start, forward * distance, Color.green);
     }
 }
