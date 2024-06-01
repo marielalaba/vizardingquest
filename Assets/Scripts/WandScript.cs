@@ -10,6 +10,9 @@ public class WandScript : MonoBehaviour
     private bool isHolding = false;
     private bool isMovingWand = false;
     private Rigidbody wandRigidbody;
+    private float wandMovingTime = 0.0f;
+
+    public GameObject particleEffect;
 
     void Start()
     {
@@ -66,6 +69,11 @@ public class WandScript : MonoBehaviour
         {
             MoveWandWithMouse();
         }
+        if (wandMovingTime > 0.5f)
+        {
+            wandMovingTime = 0.0f;
+            SpawnParticleEffect(wand.transform.position);
+        }
     }
 
     void MoveWandWithMouse()
@@ -73,6 +81,7 @@ public class WandScript : MonoBehaviour
         float mouseX = Input.GetAxis("Mouse X");
         float mouseY = Input.GetAxis("Mouse Y");
         wand.transform.Translate(new Vector3(mouseX, mouseY, 0) * Time.deltaTime * 10); // Adjust speed as necessary
+        wandMovingTime += Time.deltaTime;
     }
 
     void UpdateWandPositionAndRotation()
@@ -80,5 +89,25 @@ public class WandScript : MonoBehaviour
         wand.transform.position = holdPoint.position;
         wand.transform.rotation = playerCamera.transform.rotation;
         wand.transform.position += playerCamera.transform.forward * 0.5f; // Adjust the distance from the camera as necessary
+    }
+
+    void SpawnParticleEffect(Vector3 position)
+    {
+        if (particleEffect != null)
+        {
+
+            StartCoroutine(EnableDisableParticleEffect(particleEffect));
+        }
+        else
+        {
+            Debug.LogWarning("Particle effect prefab not assigned.");
+        }
+    }
+
+    IEnumerator EnableDisableParticleEffect(GameObject particleEffectObject)
+    {
+        particleEffectObject.SetActive(true); // Enable the game object
+        yield return new WaitForSeconds(5f); // Wait for 5 seconds
+        particleEffectObject.SetActive(false); // Disable the game object
     }
 }
