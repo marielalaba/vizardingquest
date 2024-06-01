@@ -13,6 +13,14 @@ public class WandScript : MonoBehaviour
     private float wandMovingTime = 0.0f;
 
     public GameObject particleEffect;
+    public GameObject[] randomObjects;
+    private Vector3[] initialPositions;
+
+    public float MagicDuration = 5f;
+    public float PickUpRadius = 2.0f;
+    public float WandSpeed = 10.0f;
+    public Vector3 MovementRange = new Vector3(5.0f, 5.0f, 5.0f);
+    public float WandMagicStart = 0.5f;
 
     void Start()
     {
@@ -26,7 +34,7 @@ public class WandScript : MonoBehaviour
         {
             float distance = Vector3.Distance(playerCamera.transform.position, wand.transform.position);
 
-            if (distance < 2.0f && !isHolding)
+            if (distance < PickUpRadius && !isHolding)
             {
                 isHolding = true;
             }
@@ -69,7 +77,7 @@ public class WandScript : MonoBehaviour
         {
             MoveWandWithMouse();
         }
-        if (wandMovingTime > 0.5f)
+        if (wandMovingTime > WandMagicStart)
         {
             wandMovingTime = 0.0f;
             SpawnParticleEffect(wand.transform.position);
@@ -80,7 +88,7 @@ public class WandScript : MonoBehaviour
     {
         float mouseX = Input.GetAxis("Mouse X");
         float mouseY = Input.GetAxis("Mouse Y");
-        wand.transform.Translate(new Vector3(mouseX, mouseY, 0) * Time.deltaTime * 10); // Adjust speed as necessary
+        wand.transform.Translate(new Vector3(mouseX, mouseY, 0) * Time.deltaTime * WandSpeed);
         wandMovingTime += Time.deltaTime;
     }
 
@@ -107,7 +115,51 @@ public class WandScript : MonoBehaviour
     IEnumerator EnableDisableParticleEffect(GameObject particleEffectObject)
     {
         particleEffectObject.SetActive(true); // Enable the game object
-        yield return new WaitForSeconds(5f); // Wait for 5 seconds
+        foreach (GameObject obj in randomObjects)
+        {
+            StartCoroutine(MoveRandomObject(obj));
+        }
+        yield return new WaitForSeconds(MagicDuration); // Wait for 5 seconds
         particleEffectObject.SetActive(false); // Disable the game object
+        RestoreInitialPositions();
     }
+
+    IEnumerator MoveRandomObject(GameObject obj)
+    {
+        Vector3 startPosition = obj.transform.position;
+        Vector3 endPosition = startPosition + new Vector3(Random.Range(-MovementRange.x, MovementRange.x), Random.Range(-MovementRange.y, MovementRange.y), Random.Range(-MovementRange.z, MovementRange.z));
+        float duration = 2f; // Duration of the movement
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            obj.transform.position = Vector3.Lerp(startPosition, endPosition, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        obj.transform.position = endPosition;
+    }
+
+    void StoreInitialPositions()
+    {
+        initialPositions = new Vector3[randomObjects.Length];
+        for (int i = 0; i < randomObjects.Length; i++)
+        {
+            initialPositions[i] = randomObjects[i].transform.position;
+        }
+    }
+
+    void RestoreInitialPositions()
+    {
+        for (int i = 0; i < randomObjects.Length; i++)
+        {
+            randomObjects[i].transform.position = initialPositions[i];
+        }
+    }
+
 }
+
+
+
+
