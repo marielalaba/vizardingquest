@@ -1,24 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
 public class WandScript : MonoBehaviour
 {
     private Camera playerCamera;
     public GameObject wand;
-    private float distance;
     public Transform holdPoint;
-
     private bool isHolding = false;
+    private bool isMovingWand = false;
+    private Rigidbody wandRigidbody;
 
     void Start()
     {
         playerCamera = Camera.main;
+        wandRigidbody = wand.GetComponent<Rigidbody>();
     }
 
     void Update()
     {
-
-
         if (Input.GetKeyDown(KeyCode.E))
         {
             float distance = Vector3.Distance(playerCamera.transform.position, wand.transform.position);
@@ -30,6 +30,8 @@ public class WandScript : MonoBehaviour
             else if (isHolding)
             {
                 isHolding = false;
+                isMovingWand = false;
+                wandRigidbody.isKinematic = false;
             }
             else
             {
@@ -39,8 +41,44 @@ public class WandScript : MonoBehaviour
 
         if (isHolding)
         {
-            wand.transform.position = holdPoint.position;
+            if (Input.GetMouseButtonDown(0))
+            {
+                isMovingWand = true;
+                FindObjectOfType<FirstPersonLook>().enabled = false;
+                Cursor.lockState = CursorLockMode.None;
+                wandRigidbody.isKinematic = true;
+            }
+            if (Input.GetMouseButtonUp(0))
+            {
+                isMovingWand = false;
+                FindObjectOfType<FirstPersonLook>().enabled = true;
+                Cursor.lockState = CursorLockMode.Locked;
+                wandRigidbody.isKinematic = false;
+            }
+
+            if (!isMovingWand)
+            {
+                UpdateWandPositionAndRotation();
+            }
         }
 
+        if (isMovingWand)
+        {
+            MoveWandWithMouse();
+        }
+    }
+
+    void MoveWandWithMouse()
+    {
+        float mouseX = Input.GetAxis("Mouse X");
+        float mouseY = Input.GetAxis("Mouse Y");
+        wand.transform.Translate(new Vector3(mouseX, mouseY, 0) * Time.deltaTime * 10); // Adjust speed as necessary
+    }
+
+    void UpdateWandPositionAndRotation()
+    {
+        wand.transform.position = holdPoint.position;
+        wand.transform.rotation = playerCamera.transform.rotation;
+        wand.transform.position += playerCamera.transform.forward * 0.5f; // Adjust the distance from the camera as necessary
     }
 }
