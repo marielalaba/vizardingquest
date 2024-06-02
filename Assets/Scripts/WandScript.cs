@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class WandScript : MonoBehaviour
@@ -22,9 +21,11 @@ public class WandScript : MonoBehaviour
     public float WandSpeed = 10.0f;
     public Vector3 MovementRange = new Vector3(5.0f, 5.0f, 5.0f);
     public float WandMagicStart = 0.5f;
+    public float WandMoveDuration = 3.0f; // Duration to move the wand to hold point
 
     public AudioClip wandMovingSound;
     private AudioSource audioSource;
+    private bool isCallingWand = false;
 
     void Start()
     {
@@ -59,6 +60,17 @@ public class WandScript : MonoBehaviour
             {
                 Debug.Log("Object is too far away");
             }
+
+        }
+        else if (Input.GetKeyDown(KeyCode.C))
+        {
+
+
+            if (!isHolding && !isMovingWand)
+            {
+
+                StartCoroutine(MoveWandToHoldPoint());
+            }
         }
 
         if (isHolding)
@@ -84,15 +96,16 @@ public class WandScript : MonoBehaviour
             }
         }
 
-        if (isMovingWand)
+        if (isMovingWand && !isCallingWand)
         {
             MoveWandWithMouse();
+            if (wandMovingTime > WandMagicStart)
+            {
+                wandMovingTime = 0.0f;
+                SpawnParticleEffect(wand.transform.position);
+            }
         }
-        if (wandMovingTime > WandMagicStart)
-        {
-            wandMovingTime = 0.0f;
-            SpawnParticleEffect(wand.transform.position);
-        }
+
     }
 
     void MoveWandWithMouse()
@@ -108,8 +121,6 @@ public class WandScript : MonoBehaviour
         }
 
     }
-
-
 
     void UpdateWandPositionAndRotation()
     {
@@ -129,7 +140,6 @@ public class WandScript : MonoBehaviour
             Debug.LogWarning("Particle effect prefab not assigned.");
         }
     }
-
 
     IEnumerator EnableDisableParticleEffect(GameObject particleEffectObject)
     {
@@ -188,15 +198,34 @@ public class WandScript : MonoBehaviour
     {
         for (int i = 0; i < randomObjects.Length; i++)
         {
-
             randomObjects[i].transform.position = initialPositions[i];
         }
     }
 
+    IEnumerator MoveWandToHoldPoint()
+    {
+        isMovingWand = true;
+        isCallingWand = true;
 
+        Vector3 startPosition = wand.transform.position;
+        Quaternion startRotation = wand.transform.rotation;
+        Vector3 endPosition = holdPoint.position;
+        Quaternion endRotation = playerCamera.transform.rotation;
 
+        float elapsedTime = 0f;
+
+        while (elapsedTime < WandMoveDuration)
+        {
+            wand.transform.position = Vector3.Lerp(startPosition, endPosition, elapsedTime / WandMoveDuration);
+            wand.transform.rotation = Quaternion.Slerp(startRotation, endRotation, elapsedTime / WandMoveDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        wand.transform.position = endPosition;
+        wand.transform.rotation = endRotation;
+        isMovingWand = false;
+        isHolding = true;
+        isCallingWand = false;
+    }
 }
-
-
-
-
