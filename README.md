@@ -20,12 +20,12 @@ Set in a fictional magical world inspired by the Harry Potter series, this Mixed
 git clone https://github.com/marielalaba/vizardingquest.git
 ```
 
-** 2. Open the Project in Unity ** 
+2. Open the Project in Unity 
 - Launch Unity Hub.
 - Click on the Add button and navigate to the folder where you cloned/extracted the project.
 - Select the project folder and click Open.
 
-3. ** Install Dependencies **
+3. Install Dependencies 
 - Unity may prompt you to install/update certain dependencies or packages. Follow the on-screen instructions to install the necessary components.
 
 4. Configure VR Settings
