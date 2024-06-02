@@ -16,6 +16,8 @@ public class WandScript : MonoBehaviour
     public GameObject tornadoEffect;
     private Vector3[] initialPositions;
 
+    public GameObject incendioPrefab;
+
     public float MagicDuration = 5f;
     public float PickUpRadius = 2.0f;
     public float WandSpeed = 10.0f;
@@ -24,6 +26,7 @@ public class WandScript : MonoBehaviour
     public float WandMoveDuration = 3.0f; // Duration to move the wand to hold point
 
     public AudioClip wandMovingSound;
+    public AudioClip incendioSpellSound;
     private AudioSource audioSource;
     private bool isCallingWand = false;
 
@@ -71,6 +74,12 @@ public class WandScript : MonoBehaviour
 
                 StartCoroutine(MoveWandToHoldPoint());
             }
+        }
+
+        else if (Input.GetKeyDown(KeyCode.I)) // Check for the "I" key press
+        {
+            StartCoroutine(CastIncendioSpell());
+
         }
 
         if (isHolding)
@@ -145,6 +154,7 @@ public class WandScript : MonoBehaviour
     {
         particleEffectObject.SetActive(true); // Enable the game object
         tornadoEffect.SetActive(true); // Enable the tornado effect
+
         StoreInitialPositions();
         foreach (GameObject obj in randomObjects)
         {
@@ -153,6 +163,7 @@ public class WandScript : MonoBehaviour
         yield return new WaitForSeconds(MagicDuration); // Wait for 5 seconds
         particleEffectObject.SetActive(false); // Disable the game object
         tornadoEffect.SetActive(false); // Disable the tornado effect   
+
         RestoreInitialPositions();
     }
 
@@ -227,5 +238,25 @@ public class WandScript : MonoBehaviour
         isMovingWand = false;
         isHolding = true;
         isCallingWand = false;
+    }
+
+    IEnumerator CastIncendioSpell()
+    {
+
+        if (incendioPrefab != null)
+        {
+            incendioPrefab.SetActive(true);
+
+            if (incendioSpellSound != null)
+            {
+                audioSource.PlayOneShot(incendioSpellSound);
+            }
+            yield return new WaitForSeconds(2.0f);
+            incendioPrefab.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning("Incendio prefab not assigned.");
+        }
     }
 }
