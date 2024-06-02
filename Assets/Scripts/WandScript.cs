@@ -14,6 +14,7 @@ public class WandScript : MonoBehaviour
 
     public GameObject particleEffect;
     public GameObject[] randomObjects;
+    public GameObject tornadoEffect;
     private Vector3[] initialPositions;
 
     public float MagicDuration = 5f;
@@ -22,10 +23,20 @@ public class WandScript : MonoBehaviour
     public Vector3 MovementRange = new Vector3(5.0f, 5.0f, 5.0f);
     public float WandMagicStart = 0.5f;
 
+    public AudioClip wandMovingSound;
+    private AudioSource audioSource;
+
     void Start()
     {
         playerCamera = Camera.main;
         wandRigidbody = wand.GetComponent<Rigidbody>();
+        audioSource = GetComponent<AudioSource>();
+
+        // Deactivate the particle effect GameObject initially
+        if (particleEffect != null)
+        {
+            particleEffect.SetActive(false);
+        }
     }
 
     void Update()
@@ -90,7 +101,15 @@ public class WandScript : MonoBehaviour
         float mouseY = Input.GetAxis("Mouse Y");
         wand.transform.Translate(new Vector3(mouseX, mouseY, 0) * Time.deltaTime * WandSpeed);
         wandMovingTime += Time.deltaTime;
+
+        if (!audioSource.isPlaying && wandMovingSound != null) // Check if the sound is not already playing
+        {
+            audioSource.PlayOneShot(wandMovingSound); // Play the sound effect
+        }
+
     }
+
+
 
     void UpdateWandPositionAndRotation()
     {
@@ -103,7 +122,6 @@ public class WandScript : MonoBehaviour
     {
         if (particleEffect != null)
         {
-
             StartCoroutine(EnableDisableParticleEffect(particleEffect));
         }
         else
@@ -112,15 +130,19 @@ public class WandScript : MonoBehaviour
         }
     }
 
+
     IEnumerator EnableDisableParticleEffect(GameObject particleEffectObject)
     {
         particleEffectObject.SetActive(true); // Enable the game object
+        tornadoEffect.SetActive(true); // Enable the tornado effect
+        StoreInitialPositions();
         foreach (GameObject obj in randomObjects)
         {
             StartCoroutine(MoveRandomObject(obj));
         }
         yield return new WaitForSeconds(MagicDuration); // Wait for 5 seconds
         particleEffectObject.SetActive(false); // Disable the game object
+        tornadoEffect.SetActive(false); // Disable the tornado effect   
         RestoreInitialPositions();
     }
 
@@ -131,14 +153,26 @@ public class WandScript : MonoBehaviour
         float duration = 2f; // Duration of the movement
         float elapsedTime = 0f;
 
+        // Generate random rotation angles around the X and Y axes
+        float rotationAngleX = Random.Range(0f, 360f);
+        float rotationAngleY = Random.Range(0f, 360f);
+
+        Quaternion startRotation = obj.transform.rotation;
+        Quaternion endRotation = Quaternion.Euler(rotationAngleX, rotationAngleY, 0f);
+
         while (elapsedTime < duration)
         {
             obj.transform.position = Vector3.Lerp(startPosition, endPosition, elapsedTime / duration);
+
+            // Rotate the object around both the X and Y axes
+            obj.transform.rotation = Quaternion.Slerp(startRotation, endRotation, elapsedTime / duration);
+
             elapsedTime += Time.deltaTime;
             yield return null;
         }
 
         obj.transform.position = endPosition;
+        obj.transform.rotation = endRotation; // Set the final rotation
     }
 
     void StoreInitialPositions()
@@ -154,9 +188,12 @@ public class WandScript : MonoBehaviour
     {
         for (int i = 0; i < randomObjects.Length; i++)
         {
+
             randomObjects[i].transform.position = initialPositions[i];
         }
     }
+
+
 
 }
 
